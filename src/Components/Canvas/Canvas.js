@@ -1,75 +1,126 @@
 import React from 'react'
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import './canvas.scss'
 import sprite from '../../assets/shadow_dog.png'
 
 
 function Canvas() {
+    //hooks
     const ref = useRef()
-    const canvas = ref.current;
-    const ctx = canvas.getContext('2d')
-    
+    const [count, setCount] = useState(0);
 
-    const CANVAS_WIDTH = 600;
-    const CANVAS_HEIGHT = 600;
-
-    const playerImage = new Image();
-    playerImage.src = sprite
+      //variables
+    const CANVAS_WIDTH = 1440;
+    const CANVAS_HEIGHT = 800;
     const spriteWidth = 575;
     const spriteHeight = 523;
+    const playerImage = new Image();
+    playerImage.src = sprite
 
-    let frameX = 0;
-    let frameY = 0; 
     let gameFrame = 0;
-    const staggeredFrames = 7;
+    let staggeredFrames = 2;
 
-    const spriteAnimations = [];
-    const animationStates = [
+     //method of automatically destructuring the sprite sheet into the array of different anymations based on frame amount.
+    let spriteAnimations = [];
+    let animationStates = [
         {
             name: 'idle',
             frames: 7,
-        }
+        },
         {
             name: 'jump',
             frames: 7,
-        }
+        },
         {
-            name: 'down',
+            name: 'fall',
             frames: 7,
-        }
+        },
+        {
+            name: 'run',
+            frames: 9,
+        },
+        {
+            name: 'dizzy',
+            frames: 11,
+        },
+        {
+            name: 'sit',
+            frames: 5,
+        },
+        {
+            name: 'roll',
+            frames: 7,
+        },
+        {
+            name: 'bite',
+            frames: 7,
+        },
+        {
+            name: 'ko',
+            frames: 12,
+        },
+        {
+            name: 'get hit',
+            frames: 4,
+        },
     ]
+
+    // populate spriteAnimations array with coordinates of each frame
     animationStates.forEach((state, index) => {
         let frames = {
-            loc: [],
+            loc: []
         }
-        for (let j = 0; j< sprite.frames; s++) {
+        for (let j = 0; j < state.frames; j++) {
             let positionX = j * spriteWidth;
-            let positionY = index * spriteWidth;
+            let positionY = index * spriteHeight;
             frames.loc.push({x: positionX, y: positionY})
         }
-        spriteAnimations[state.name] = frames;
+        spriteAnimations[index] = frames;
     })
-    
-    const animate = () => {
-        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-        let position  = Math.floor(gameFrame/staggeredFrames) % 6;
-        frameX = spriteWidth * position; 
 
-
-        ctx.drawImage(playerImage, frameX, frameY * spriteHeight, spriteWidth, spriteHeight, 0, 0, 200, 200)
-
-        gameFrame++;
-        requestAnimationFrame(animate)
+    const changeUp = () => {
+        if (count < spriteAnimations.length - 1) {
+            setCount(count + 1)
+        }
     }
-    animate()
+    const changeDown = () => {
+        if (count !== 0 ) {
+            setCount(count - 1)
+        }
+    }
+
+    useEffect(()=> {
+        //define canvas
+        const canvas = ref.current;
+        const ctx = canvas.getContext('2d')
     
+        // define animation \
+
+        const animate = () => {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+            let position = Math.floor(gameFrame/ staggeredFrames) % spriteAnimations[count].loc.length; //amount of frames in animation
+            let frameX = spriteAnimations[count].loc[position].x;
+            let frameY = spriteAnimations[count].loc[position].y;
+            ctx.drawImage(playerImage, frameX, frameY, spriteWidth, spriteHeight, 0, 0, 100, 100)
+            gameFrame++;   
+            requestAnimationFrame(animate)
+        }
+
+        animate()
+
+    })
+
+
+
+
+
     return (
-        <canvas ref={ref} className='canvas' width={CANVAS_WIDTH} height={CANVAS_HEIGHT}/>
+        <div>
+            <button onClick={()=> changeUp()}>up</button>
+            <button onClick={()=> changeDown()}>down</button>
+            <canvas ref={ref} className='canvas' width={CANVAS_WIDTH} height={CANVAS_HEIGHT}/>
+        </div>
     )
 }
 
 export default Canvas
-
-/*
- 
-*/
